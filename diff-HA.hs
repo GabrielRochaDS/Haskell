@@ -21,7 +21,18 @@ diffHa s1 s2 = diffAux s1 s2 (length s1) (length s2)
       | x == y    = diffAux xs ys (len1 - 1) (len2 - 1)
       | otherwise = 1 + minimum [diffAux xs (y:ys) (len1 - 1) len2,   -- Remoção
                                  diffAux (x:xs) ys len1 (len2 - 1),   -- Inserção
-                                 diffAux xs ys (len1 - 1) (len2 - 1)] -- Substituição
+                                 diffAux xs ys (len1 - 1) (len2 - 1)] -- Substituiçã
+
+
+stringDiffHa :: String -> String -> String
+stringDiffHa s1 s2 = diffAux s1 s2
+  where
+    diffAux [] [] = ""
+    diffAux s1 [] = s1
+    diffAux [] s2 = "<" ++ s2 ++ ">"
+    diffAux (x:xs) (y:ys)
+      | x == y    = x : diffAux xs ys
+      | otherwise = '<' : y : '>' :  diffAux (x:xs) ys
 
 
 -- Função distanciaEdicaoHamming calcula a distância de Hamming entre duas strings
@@ -35,11 +46,13 @@ stringToList [] = []
 stringToList str = lines str
 
 -- Função EdicaoHamminglistPasser
+-- Função que recebe duas listas de strings e retorna uma lista das médias de distâncias de edição de Hamming
 edicaoHamminglistPasser :: [String] -> [String] -> [Double]
 edicaoHamminglistPasser [] [] = []
 edicaoHamminglistPasser (x:xs) (y:ys) = distanciaEdicaoHamming (diffHa x y) (max (length x) (length y)) : edicaoHamminglistPasser xs ys
 
 -- Função diffHaToList
+-- Função que recebe duas listas de strings e retorna uma lista da distância de edição de Hamming
 diffHaToList :: [String] -> [String] -> [Int]
 diffHaToList [] [] = []
 diffHaToList (x:xs) (y:ys) = diffHa x y : diffHaToList xs ys
@@ -49,9 +62,9 @@ formatter :: Int -> Int -> Double -> String
 formatter numLinha diffTotal media = "Numero de erros: " ++ show diffTotal ++ " | " ++ "Distancia de Edicao-Hamming da linha " ++ show numLinha ++ ": " ++ show media
 
 
-formatOutput :: [Int] -> [Double] -> Int -> String
-formatOutput [] [] i = ""
-formatOutput (y:ys) (x:xs) i = formatter i y x ++ "\n" ++ formatOutput ys xs (i+1)
+formatOutput :: [Int] -> [Double] -> Int -> [String] -> [String] -> String 
+formatOutput [] [] i [] [] = ""
+formatOutput (y:ys) (x:xs) i (z:zs) (a:as) = z ++ "   " ++ a ++ "\n" ++ formatter i y x ++ "\n" ++ "------------------------------------------------------------------------------------------------" ++ "\n" ++ formatOutput ys xs (i+1) zs as
       
 
 main = do
@@ -64,7 +77,8 @@ main = do
     handle2 <- openFile l2 ReadMode
     contents1 <- hGetContents handle1
     contents2 <- hGetContents handle2
-    putStrLn (formatOutput (diffHaToList(stringToList contents1)(stringToList contents2)) (edicaoHamminglistPasser (stringToList contents1) (stringToList contents2)) 1)
+    putStrLn (formatOutput (diffHaToList(stringToList contents1)(stringToList contents2)) (edicaoHamminglistPasser (stringToList contents1) (stringToList contents2)) 1 (stringToList contents1) (stringToList contents2))
+    --putStrLn (stringDiffHa contents1 contents2)
     
     hClose handle1
     hClose handle2
