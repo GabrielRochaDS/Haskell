@@ -7,6 +7,8 @@ import Control.Monad.RWS.Class (MonadState(put))
 -- Diferença entre duas strings 
 diffStrings :: String -> String -> Int
 diffStrings [] [] = 0
+diffStrings [] ys = length ys
+diffStrings xs [] = length xs
 diffStrings (x:xs) (y:ys) = if x == y then diffStrings xs ys else 1 + diffStrings xs ys
 
 -- Diferença de Hamming entre duas strings
@@ -21,9 +23,9 @@ diffHa s1 s2 = diffAux s1 s2 (length s1) (length s2)
       | x == y    = diffAux xs ys (len1 - 1) (len2 - 1)
       | otherwise = 1 + minimum [diffAux xs (y:ys) (len1 - 1) len2,   -- Remoção
                                  diffAux (x:xs) ys len1 (len2 - 1),   -- Inserção
-                                 diffAux xs ys (len1 - 1) (len2 - 1)] -- Substituiçã
+                                 diffAux xs ys (len1 - 1) (len2 - 1)] -- Substituição
 
-
+--Função (Semi-Funcional) para retorna a string diferente com os caracteres diferentes destacados
 stringDiffHa :: String -> String -> String
 stringDiffHa s1 s2 = diffAux s1 s2
   where
@@ -38,6 +40,8 @@ stringDiffHa s1 s2 = diffAux s1 s2
 -- Função distanciaEdicaoHamming calcula a distância de Hamming entre duas strings
 distanciaEdicaoHamming :: Int -> Int -> Double
 distanciaEdicaoHamming 0 0 = 0
+distanciaEdicaoHamming _ 0 = 0
+distanciaEdicaoHamming 0 y = fromIntegral y
 distanciaEdicaoHamming x y = fromIntegral x / fromIntegral y
 
 -- Função stringToList devide by \n
@@ -49,12 +53,16 @@ stringToList str = lines str
 -- Função que recebe duas listas de strings e retorna uma lista das médias de distâncias de edição de Hamming
 edicaoHamminglistPasser :: [String] -> [String] -> [Double]
 edicaoHamminglistPasser [] [] = []
+edicaoHamminglistPasser s1 [] = [1]
+edicaoHamminglistPasser [] s2 = [1]
 edicaoHamminglistPasser (x:xs) (y:ys) = distanciaEdicaoHamming (diffHa x y) (max (length x) (length y)) : edicaoHamminglistPasser xs ys
 
 -- Função diffHaToList
 -- Função que recebe duas listas de strings e retorna uma lista da distância de edição de Hamming
 diffHaToList :: [String] -> [String] -> [Int]
 diffHaToList [] [] = []
+diffHaToList s1 [] = [length s1]
+diffHaToList [] s2 = [length s2]
 diffHaToList (x:xs) (y:ys) = diffHa x y : diffHaToList xs ys
 
 -- Função Formatação
@@ -64,6 +72,8 @@ formatter numLinha diffTotal media = "Numero de erros: " ++ show diffTotal ++ " 
 
 formatOutput :: [Int] -> [Double] -> Int -> [String] -> [String] -> String 
 formatOutput [] [] i [] [] = ""
+formatOutput y x i (z:zs) [] = "Remoção da String " ++ z ++ " na linha " ++ show i ++ "!\n"
+formatOutput y x i [] (a:as) = "Adição da String " ++ a ++ " na linha " ++ show i ++ "!\n" 
 formatOutput (y:ys) (x:xs) i (z:zs) (a:as) = z ++ "   " ++ a ++ "\n" ++ formatter i y x ++ "\n" ++ "------------------------------------------------------------------------------------------------" ++ "\n" ++ formatOutput ys xs (i+1) zs as
       
 
